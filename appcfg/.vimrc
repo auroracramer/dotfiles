@@ -402,8 +402,6 @@ endfunction
 
 let &colorcolumn=join(range(81,999),",")
 
-execute pathogen#infect()
-
 set smartindent
 set showcmd
 syntax on
@@ -414,5 +412,3 @@ set wildmode=longest,list
 
 :au InsertEnter * match ExtraWhitespace /\s\+\%#\@<!$/
 :au InsertLeave * match ExtraWhitespace /\s\+$/
-
-:colorscheme vividchalk
