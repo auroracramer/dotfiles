@@ -1,7 +1,7 @@
 # Install pip
 install-package python3
 install-package python3-dev
-install-package python3-pip
+sudo easy_install3 -U pip
 
 # Set up general packages
 DF_REQS_DIR="$INSTALL_DIR/python-requirements"
