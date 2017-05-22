@@ -1,5 +1,4 @@
-git clone https://github.com/powerline/fonts.git $WORKSPACE_DIR/fonts
-$WORKSPACE_DIR/fonts/install.sh
+install-package fonts-powerline
 
 mkdir -p $HOME/.bash/themes/agnoster-bash
 git clone https://github.com/speedenator/agnoster-bash.git $HOME/.bash/themes/agnoster-bash
