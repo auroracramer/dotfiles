@@ -1,0 +1,3 @@
+pyaudio --install-option='-m'
+scikits.samplerate
+audioread
