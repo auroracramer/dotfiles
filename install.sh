@@ -34,6 +34,7 @@ install-package tmux
 # Run install scripts
 . $INSTALL_DIR/theme.sh
 . $INSTALL_DIR/vim.sh
+. $INSTALL_DIR/pip.sh
 
 
 # Install dotfiles
