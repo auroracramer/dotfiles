@@ -1,0 +1,173 @@
+##################
+# General Helpers
+##################
+
+# Get named var (usage: get "VAR_NAME")
+get() {
+  echo "${!1}"
+}
+
+# Add to path
+prepend-path() {
+  [ -d $1 ] && PATH="$1:$PATH"
+}
+
+
+###################
+# Platform Helpers
+###################
+
+# Get the platform 
+get-platform() {
+    local __osvar=$1
+    local __distrvar=$2
+    local __archvar=$3
+    local __vervar=$4
+
+    os='unknown'
+    unamestr=$(uname)
+    if [[ "$unamestr" == 'Linux' ]]; then
+       os='linux'
+    elif [[ "$unamestr" == 'Darwin' ]]; then
+       os='mac'
+    fi
+
+    if [[ "$os" == 'linux' ]]; then
+        local distr=$(lsb_release -si)
+        local ver=$(lsb_release -sr)
+    elif [[ "$os" == 'mac' ]]; then
+        local distr=""
+        local ver="$(sw_vers -productVersion)"
+    else
+        local distr=""
+        local ver=""
+    fi
+
+    local arch=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
+
+    eval $__osvar="'$os'"
+    eval $__distrvar="'$distr'"
+    eval $__archvar="'$arch'"
+    eval $__vervar="'$ver'"
+}
+
+function get-package-manager() {
+    local os=$1
+    local distr=$2
+    local __pmvar=$3
+
+    if [[ "$os" == 'linux' ]]; then
+        if [[ "$distr" == "Debian" ]] || [[ "$distr" == "Ubuntu" ]]; then
+            local pm="apt-get"
+        fi
+    elif [[ "$os" == 'mac' ]]; then
+        local pm="brew"
+    else
+        local pm=""
+    fi
+
+    eval $__pmvar="'$pm'"
+}
+
+function _install-package() {
+    local os=$1
+    local distr=$2
+    local package=$3
+
+    get-package-manager $os $distr package_manager
+
+    if [[ "$package_manager" == 'apt-get' ]]; then
+        sudo apt-get install $3 -y
+    elif [[ "$package_manager" == 'brew' ]]; then
+        brew install $3
+    fi
+}
+
+function install-package() {
+    local package=$1
+
+    _install-package $OS $DISTR $1
+}
+
+############
+# Utilities
+############
+
+# Calculator
+calc() {
+  echo "$*" | bc -l;
+}
+
+# Weather
+meteo() {
+  local CITY=${1:-Utrecht}
+  curl -4 "wttr.in/$CITY"
+}
+
+################
+# Shell Helpers
+################
+
+# Show 256 TERM colors
+colors() {
+  local X=$(tput op)
+  local Y=$(printf %$((COLUMNS-6))s)
+  for i in {0..256}; do
+  o=00$i;
+  echo -e ${o:${#o}-3:3} $(tput setaf $i;tput setab $i)${Y// /=}$X;
+  done
+}
+
+#####################
+# Executable Helpers
+#####################
+
+is-executable() {
+  local BIN=$(command -v "$1" 2>/dev/null)
+  if [[ ! $BIN == "" && -x $BIN ]]; then true; else false; fi
+}
+
+is-supported() {
+  if [ $# -eq 1 ]; then
+    if eval "$1" > /dev/null 2>&1; then true; else false; fi
+  else
+    if eval "$1" > /dev/null 2>&1; then
+      echo -n "$2"
+    else
+      echo -n "$3"
+    fi
+  fi
+}
+
+###########################
+# dotfile Specific Helpers
+###########################
+
+# Install dotfile, backup up any existing dotfiles that exist
+function install-dotfile() {
+    # Create backup directory if it does not exist
+    mkdir -p $BACKUP_DIR
+
+    # If original file exists, move the file to a backup directory
+    file_basename=$(basename "$1")
+    original_filepath="$HOME/$file_basename"
+    if [[ -f $original_filepath ]]; then
+        mv $original_filepath $BACKUP_DIR
+    fi
+
+    # Create a symbolic link to the dotfile
+    ln -sfv "$1" $HOME
+}
+
+set-config() {
+  local KEY="$1"
+  local VALUE="$2"
+  local FILE="$3"
+  touch "$FILE"
+  if grep -q "$1=" "$FILE"; then
+    sed "s@$KEY=.*@$KEY=\"$VALUE\"@" -i "$FILE"
+  else
+    echo "export $KEY=$VALUE" >> "$FILE"
+  fi
+}
+
